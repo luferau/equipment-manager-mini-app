@@ -116,7 +116,7 @@ An administrator adds new users to the system and assigns roles (regular user vs
 - What happens when a user scans a QR code for equipment that has been deleted? System shows "Equipment not found" with option to report.
 - What happens when multiple users try to check out the same equipment simultaneously? First confirmed checkout wins; second user sees "Equipment is no longer available."
 - How does the system handle equipment with no assigned home location? Equipment can exist without a home location but displays "No home location set" in details.
-- What happens when a user loses connectivity mid-checkout? Action is queued locally and synced when connectivity returns; user sees pending status.
+- What happens when a user loses connectivity mid-checkout? Operation fails with clear error message; user must retry when connectivity returns.
 - How does the system handle corrupted or unreadable QR codes? Scanner shows "Could not read code" with option to retry or enter ID manually.
 - What happens when file uploads fail? User sees retry option; partial uploads are discarded.
 
@@ -205,7 +205,7 @@ An administrator adds new users to the system and assigns roles (regular user vs
 - **SC-006**: System supports at least 50 concurrent users without errors.
 - **SC-007**: 95% of users successfully complete their first equipment lookup without assistance.
 - **SC-008**: Equipment location accuracy is 100% - the system always reflects the last recorded location.
-- **SC-009**: Zero data loss for equipment actions, even during connectivity interruptions.
+- **SC-009**: System displays clear error messages when connectivity is lost; users can retry failed operations.
 - **SC-010**: Any user can add new equipment in under 2 minutes.
 - **SC-011**: Complete audit trail is available for any equipment item within 2 taps from the details screen.
 

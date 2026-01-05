@@ -190,25 +190,29 @@ function validateInitData(initData: string, botToken: string): TelegramUser | nu
 }
 ```
 
-### 9. Offline Support
+### 9. Connectivity Model
 
-**Decision**: IndexedDB cache with sync queue
+**Decision**: Always-online architecture (no offline support)
 
 **Rationale**:
-- Connectivity can be unreliable in lab/warehouse environments
-- Critical actions (checkout, return) queue locally when offline
-- Read operations serve from cache first, then refresh
-- Sync queue processes when connectivity returns
+- Simplifies architecture significantly - no sync queues or conflict resolution
+- Users expected to have internet in lab/office environments
+- Real-time data consistency - all users see latest state immediately
+- Reduces frontend complexity - direct API calls, no caching layer
+- Easier debugging - single source of truth (backend database)
 
-**Implementation Pattern**:
-- Pinia store persisted to IndexedDB via `pinia-plugin-persistedstate`
-- Sync queue stored separately, processed in order
-- Conflict resolution: server wins, user notified
+**Implementation**:
+- All operations require active internet connection
+- Show clear error messages when connectivity is lost
+- Retry failed requests with exponential backoff
+- Loading states during API calls
 
-**Cached Data**:
-- Equipment list (refreshed on app open)
-- Location/type lookup tables
-- Pending actions queue
+**Rejected Alternative: Offline-first with sync**:
+- ❌ Complex sync queue implementation
+- ❌ Conflict resolution logic needed
+- ❌ IndexedDB persistence layer
+- ❌ Data consistency issues during sync
+- ❌ Additional testing complexity
 
 ### 10. API Design
 

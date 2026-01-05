@@ -16,7 +16,7 @@ Build a Telegram Mini App for managing laboratory equipment (measuring instrumen
 **Target Platform**: Telegram Mini App (iOS/Android via Telegram client, WebApp API 6.9+)
 **Project Type**: Web application (frontend + backend monorepo)
 **Performance Goals**: QR scan to details <3s, search results <1s, 1000+ equipment items, 50 concurrent users
-**Constraints**: 10MB max file upload, offline-capable with sync queue, mobile-first touch targets (44x44px)
+**Constraints**: 10MB max file upload, requires internet connection, mobile-first touch targets (44x44px)
 **Scale/Scope**: Single organization, ~1000 equipment items, ~50 users, ~10 screens
 
 ## Constitution Check
@@ -142,7 +142,7 @@ See [research.md](./research.md) for detailed technology decisions:
 - **Backend**: Node.js 20 + Express.js + Prisma + SQLite
 - **File Storage**: Local filesystem with SHA-256 checksums
 - **Authentication**: Telegram initData validation (HMAC-SHA256)
-- **Offline Support**: IndexedDB cache with sync queue
+- **Connectivity**: Always-online - requires internet connection for all operations
 
 ## Phase 1: Design Artifacts (Complete)
 
