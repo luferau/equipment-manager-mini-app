@@ -1,0 +1,1149 @@
+openapi: 3.0.3
+info:
+  title: Equipment Manager API
+  description: |
+    REST API for the Equipment Manager Telegram Mini App.
+    All endpoints require Telegram initData validation via the X-Telegram-Init-Data header.
+  version: 1.0.0
+  contact:
+    name: Equipment Manager
+servers:
+  - url: /api
+    description: API base path
+
+tags:
+  - name: Auth
+    description: Authentication and user profile
+  - name: Equipment
+    description: Equipment management operations
+  - name: History
+    description: Equipment action history
+  - name: Files
+    description: File attachment operations
+  - name: Locations
+    description: Location management
+  - name: Types
+    description: Equipment type management
+  - name: Users
+    description: User management (admin only)
+
+security:
+  - TelegramAuth: []
+
+paths:
+  # ============================================
+  # Authentication
+  # ============================================
+  /auth/validate:
+    post:
+      tags: [Auth]
+      summary: Validate Telegram initData and get user profile
+      description: |
+        Validates the Telegram initData signature and returns the authenticated user's profile.
+        Creates a new user record if this is their first access (pending admin approval).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [initData]
+              properties:
+                initData:
+                  type: string
+                  description: Raw initData string from Telegram WebApp
+      responses:
+        '200':
+          description: User authenticated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Invalid or expired initData
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is deactivated or not registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================
+  # Equipment
+  # ============================================
+  /equipment:
+    get:
+      tags: [Equipment]
+      summary: List equipment with optional filters
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by name (partial match)
+        - name: typeId
+          in: query
+          schema:
+            type: integer
+          description: Filter by equipment type
+        - name: locationId
+          in: query
+          schema:
+            type: integer
+          description: Filter by current location
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/EquipmentStatus'
+          description: Filter by status
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+          description: Maximum results to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Pagination offset
+      responses:
+        '200':
+          description: Equipment list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EquipmentSummary'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+
+    post:
+      tags: [Equipment]
+      summary: Create new equipment
+      description: Any authenticated user can create equipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEquipmentRequest'
+      responses:
+        '201':
+          description: Equipment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /equipment/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Equipment ID or UID (e.g., "123" or "EQ-0001-ABC")
+
+    get:
+      tags: [Equipment]
+      summary: Get equipment details
+      responses:
+        '200':
+          description: Equipment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      tags: [Equipment]
+      summary: Update equipment details
+      description: Any authenticated user can update equipment. All changes are tracked.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEquipmentRequest'
+      responses:
+        '200':
+          description: Equipment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags: [Equipment]
+      summary: Soft-delete equipment (admin only)
+      description: Marks equipment as deleted. History is preserved.
+      responses:
+        '204':
+          description: Equipment deleted
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /equipment/{id}/qrcode:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Equipment]
+      summary: Generate QR code for equipment
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [png, svg]
+            default: png
+          description: Output format
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 200
+            minimum: 100
+            maximum: 1000
+          description: QR code size in pixels
+      responses:
+        '200':
+          description: QR code image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/svg+xml:
+              schema:
+                type: string
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /equipment/{id}/checkout:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    post:
+      tags: [Equipment]
+      summary: Check out equipment
+      description: Take equipment to a new location. Sets status to CHECKED_OUT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [locationId]
+              properties:
+                locationId:
+                  type: integer
+                  description: Destination location ID
+                notes:
+                  type: string
+                  maxLength: 500
+                  description: Optional checkout notes
+      responses:
+        '200':
+          description: Equipment checked out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '400':
+          description: Equipment not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Equipment already checked out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /equipment/{id}/return:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    post:
+      tags: [Equipment]
+      summary: Return equipment
+      description: Return equipment to its home location. Sets status to AVAILABLE.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+                  maxLength: 500
+                  description: Optional return notes
+      responses:
+        '200':
+          description: Equipment returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '400':
+          description: Equipment not checked out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================
+  # History
+  # ============================================
+  /equipment/{id}/history:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [History]
+      summary: Get equipment action history
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Action history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EquipmentAction'
+                  total:
+                    type: integer
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================
+  # Files
+  # ============================================
+  /equipment/{id}/files:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Files]
+      summary: List file attachments for equipment
+      responses:
+        '200':
+          description: Attachment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags: [Files]
+      summary: Upload file attachment
+      description: Any user can attach files to equipment without checkout.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload (max 10MB)
+      responses:
+        '201':
+          description: File uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+        '400':
+          description: Invalid file or size limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    get:
+      tags: [Files]
+      summary: Download file
+      responses:
+        '200':
+          description: File content
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================
+  # Locations
+  # ============================================
+  /locations:
+    get:
+      tags: [Locations]
+      summary: List all locations
+      parameters:
+        - name: activeOnly
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Only return active locations
+      responses:
+        '200':
+          description: Location list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+
+    post:
+      tags: [Locations]
+      summary: Create location (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLocationRequest'
+      responses:
+        '201':
+          description: Location created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /locations/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    patch:
+      tags: [Locations]
+      summary: Update location (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationRequest'
+      responses:
+        '200':
+          description: Location updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Location not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================
+  # Equipment Types
+  # ============================================
+  /types:
+    get:
+      tags: [Types]
+      summary: List all equipment types
+      parameters:
+        - name: activeOnly
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Only return active types
+      responses:
+        '200':
+          description: Type list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EquipmentType'
+
+    post:
+      tags: [Types]
+      summary: Create equipment type (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTypeRequest'
+      responses:
+        '201':
+          description: Type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipmentType'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /types/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    patch:
+      tags: [Types]
+      summary: Update equipment type (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTypeRequest'
+      responses:
+        '200':
+          description: Type updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipmentType'
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Type not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================
+  # Users (Admin only)
+  # ============================================
+  /users:
+    get:
+      tags: [Users]
+      summary: List all users (admin only)
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfile'
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags: [Users]
+      summary: Add new user (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    get:
+      tags: [Users]
+      summary: Get user details (admin only)
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      tags: [Users]
+      summary: Update user (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '403':
+          description: Admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    TelegramAuth:
+      type: apiKey
+      in: header
+      name: X-Telegram-Init-Data
+      description: Telegram WebApp initData string
+
+  schemas:
+    # ============================================
+    # User Schemas
+    # ============================================
+    UserRole:
+      type: string
+      enum: [USER, ADMIN]
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        telegramId:
+          type: string
+          description: Telegram user ID (as string for large numbers)
+        username:
+          type: string
+          nullable: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+          nullable: true
+        role:
+          $ref: '#/components/schemas/UserRole'
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    UserDetail:
+      allOf:
+        - $ref: '#/components/schemas/UserProfile'
+        - type: object
+          properties:
+            recentActions:
+              type: array
+              items:
+                $ref: '#/components/schemas/EquipmentAction'
+              description: Last 10 actions by this user
+
+    CreateUserRequest:
+      type: object
+      required: [telegramId, firstName, role]
+      properties:
+        telegramId:
+          type: string
+          description: Telegram user ID
+        username:
+          type: string
+        firstName:
+          type: string
+          maxLength: 100
+        lastName:
+          type: string
+          maxLength: 100
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+        isActive:
+          type: boolean
+
+    # ============================================
+    # Equipment Schemas
+    # ============================================
+    EquipmentStatus:
+      type: string
+      enum: [AVAILABLE, CHECKED_OUT, MAINTENANCE, BROKEN]
+
+    EquipmentSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        uid:
+          type: string
+          description: Human-readable equipment ID
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/EquipmentStatus'
+        type:
+          $ref: '#/components/schemas/EquipmentType'
+        currentLocation:
+          $ref: '#/components/schemas/Location'
+        currentHolder:
+          $ref: '#/components/schemas/UserProfile'
+
+    Equipment:
+      allOf:
+        - $ref: '#/components/schemas/EquipmentSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+              nullable: true
+            homeLocation:
+              $ref: '#/components/schemas/Location'
+            createdBy:
+              $ref: '#/components/schemas/UserProfile'
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+            attachmentCount:
+              type: integer
+              description: Number of attached files
+
+    CreateEquipmentRequest:
+      type: object
+      required: [name, typeId]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        typeId:
+          type: integer
+        homeLocationId:
+          type: integer
+
+    UpdateEquipmentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        typeId:
+          type: integer
+        homeLocationId:
+          type: integer
+        status:
+          $ref: '#/components/schemas/EquipmentStatus'
+          description: Direct status change (for MAINTENANCE/BROKEN)
+
+    # ============================================
+    # Action Schemas
+    # ============================================
+    ActionType:
+      type: string
+      enum: [CREATED, UPDATED, CHECKED_OUT, RETURNED, STATUS_CHANGED, LOCATION_CHANGED, DELETED, FILE_ATTACHED]
+
+    EquipmentAction:
+      type: object
+      properties:
+        id:
+          type: integer
+        actionType:
+          $ref: '#/components/schemas/ActionType'
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        fromLocation:
+          $ref: '#/components/schemas/Location'
+        toLocation:
+          $ref: '#/components/schemas/Location'
+        fromStatus:
+          $ref: '#/components/schemas/EquipmentStatus'
+        toStatus:
+          $ref: '#/components/schemas/EquipmentStatus'
+        notes:
+          type: string
+          nullable: true
+        changes:
+          type: object
+          description: Field-level changes for UPDATE actions
+          additionalProperties:
+            type: object
+            properties:
+              from:
+                type: string
+              to:
+                type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    # ============================================
+    # Attachment Schemas
+    # ============================================
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: integer
+        originalName:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+          description: File size in bytes
+        uploadedBy:
+          $ref: '#/components/schemas/UserProfile'
+        createdAt:
+          type: string
+          format: date-time
+        downloadUrl:
+          type: string
+          format: uri
+          description: URL to download the file
+
+    # ============================================
+    # Master Data Schemas
+    # ============================================
+    EquipmentType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        equipmentCount:
+          type: integer
+          description: Number of equipment items of this type
+
+    CreateTypeRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+
+    UpdateTypeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        isActive:
+          type: boolean
+
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        equipmentCount:
+          type: integer
+          description: Number of equipment items at this location
+
+    CreateLocationRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+
+    UpdateLocationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        isActive:
+          type: boolean
+
+    # ============================================
+    # Error Schemas
+    # ============================================
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Error code for client handling
+        message:
+          type: string
+          description: Human-readable error message
+
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
