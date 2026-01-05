@@ -74,7 +74,7 @@ Native Telegram scanning is more reliable than JS-based camera solutions.
 Every equipment state change MUST be tracked:
 - Equipment location changes MUST record: who, when, from-location, to-location
 - All equipment actions MUST be immutable once recorded (append-only history)
-- Equipment MUST have defined states: Busy, Available, Maintenance, Broken
+- Equipment MUST have defined states: Checked-Out, Available, Maintenance, Broken
 - File attachments (documents, photos, videos) MUST be linked to equipment with timestamps
 - Equipment types and categories MUST be hierarchical (type → unit)
 - Room/location data MUST be normalized (room numbers as first-class entities)

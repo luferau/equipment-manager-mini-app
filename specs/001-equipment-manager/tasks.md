@@ -166,6 +166,7 @@
 - [ ] T068 [US3] Create BrowseByRoom page with room list in frontend/src/pages/BrowseByRoom.vue
 - [ ] T069 [US3] Create BrowseByType page with type list in frontend/src/pages/BrowseByType.vue
 - [ ] T070 [US3] Create EmptyState component for no results in frontend/src/components/common/EmptyState.vue
+- [ ] T071 [US3] Verify search performance meets SC-004 (<1s response time) with 1000 equipment items in backend/tests/performance/search.test.ts
 
 **Checkpoint**: User Story 3 complete - search and browse works independently
 
@@ -179,21 +180,21 @@
 
 ### Backend Implementation for US4
 
-- [ ] T071 [US4] Create UID generation utility in backend/src/utils/uid-generator.ts
-- [ ] T072 [US4] Create QR code generation utility in backend/src/utils/qr-generator.ts
-- [ ] T073 [US4] Extend Equipment service with create method in backend/src/services/equipment.service.ts
-- [ ] T074 [US4] Implement POST /api/equipment endpoint in backend/src/api/routes/equipment.routes.ts
-- [ ] T075 [US4] Implement GET /api/equipment/:id/qrcode endpoint in backend/src/api/routes/equipment.routes.ts
-- [ ] T076 [US4] Create Zod schema for create equipment in backend/src/schemas/equipment.schema.ts
+- [ ] T072 [US4] Create UID generation utility in backend/src/utils/uid-generator.ts
+- [ ] T073 [US4] Create QR code generation utility in backend/src/utils/qr-generator.ts
+- [ ] T074 [US4] Extend Equipment service with create method in backend/src/services/equipment.service.ts
+- [ ] T075 [US4] Implement POST /api/equipment endpoint in backend/src/api/routes/equipment.routes.ts
+- [ ] T076 [US4] Implement GET /api/equipment/:id/qrcode endpoint in backend/src/api/routes/equipment.routes.ts
+- [ ] T077 [US4] Create Zod schema for create equipment in backend/src/schemas/equipment.schema.ts
 
 ### Frontend Implementation for US4
 
-- [ ] T077 [US4] Create AddEquipment page with form in frontend/src/pages/AddEquipment.vue
-- [ ] T078 [US4] Create EquipmentForm component with validation in frontend/src/components/equipment/EquipmentForm.vue
-- [ ] T079 [US4] Create TypeSelector component (dropdown) in frontend/src/components/common/TypeSelector.vue
-- [ ] T080 [US4] Create LocationSelector component (dropdown) in frontend/src/components/common/LocationSelector.vue
-- [ ] T081 [US4] Create QRCodeDisplay component with save/print in frontend/src/components/equipment/QRCodeDisplay.vue
-- [ ] T082 [US4] Add "Add Equipment" button to Home page in frontend/src/pages/Home.vue
+- [ ] T078 [US4] Create AddEquipment page with form in frontend/src/pages/AddEquipment.vue
+- [ ] T079 [US4] Create EquipmentForm component with validation in frontend/src/components/equipment/EquipmentForm.vue
+- [ ] T080 [US4] Create TypeSelector component (dropdown) in frontend/src/components/common/TypeSelector.vue
+- [ ] T081 [US4] Create LocationSelector component (dropdown) in frontend/src/components/common/LocationSelector.vue
+- [ ] T082 [US4] Create QRCodeDisplay component with save/print in frontend/src/components/equipment/QRCodeDisplay.vue
+- [ ] T083 [US4] Add "Add Equipment" button to Home page in frontend/src/pages/Home.vue
 
 **Checkpoint**: User Story 4 complete - equipment creation works independently
 
@@ -207,22 +208,22 @@
 
 ### Backend Implementation for US5
 
-- [ ] T083 [P] [US5] Create EquipmentType service with CRUD in backend/src/services/type.service.ts
-- [ ] T084 [P] [US5] Create Location service with CRUD in backend/src/services/location.service.ts
-- [ ] T085 [US5] Implement POST /api/types (admin) in backend/src/api/routes/types.routes.ts
-- [ ] T086 [US5] Implement PATCH /api/types/:id (admin) in backend/src/api/routes/types.routes.ts
-- [ ] T087 [US5] Implement POST /api/locations (admin) in backend/src/api/routes/locations.routes.ts
-- [ ] T088 [US5] Implement PATCH /api/locations/:id (admin) in backend/src/api/routes/locations.routes.ts
-- [ ] T089 [US5] Create Zod schemas for types/locations in backend/src/schemas/master-data.schema.ts
+- [ ] T084 [P] [US5] Create EquipmentType service with CRUD in backend/src/services/type.service.ts
+- [ ] T085 [P] [US5] Create Location service with CRUD in backend/src/services/location.service.ts
+- [ ] T086 [US5] Implement POST /api/types (admin) in backend/src/api/routes/types.routes.ts
+- [ ] T087 [US5] Implement PATCH /api/types/:id (admin) in backend/src/api/routes/types.routes.ts
+- [ ] T088 [US5] Implement POST /api/locations (admin) in backend/src/api/routes/locations.routes.ts
+- [ ] T089 [US5] Implement PATCH /api/locations/:id (admin) in backend/src/api/routes/locations.routes.ts
+- [ ] T090 [US5] Create Zod schemas for types/locations in backend/src/schemas/master-data.schema.ts
 
 ### Frontend Implementation for US5
 
-- [ ] T090 [US5] Create Admin page with settings menu in frontend/src/pages/Admin.vue
-- [ ] T091 [US5] Create ManageTypes page with list and forms in frontend/src/pages/admin/ManageTypes.vue
-- [ ] T092 [US5] Create ManageLocations page with list and forms in frontend/src/pages/admin/ManageLocations.vue
-- [ ] T093 [P] [US5] Create TypeForm component in frontend/src/components/admin/TypeForm.vue
-- [ ] T094 [P] [US5] Create LocationForm component in frontend/src/components/admin/LocationForm.vue
-- [ ] T095 [US5] Add admin route guard for role check in frontend/src/router/guards.ts
+- [ ] T091 [US5] Create Admin page with settings menu in frontend/src/pages/Admin.vue
+- [ ] T092 [US5] Create ManageTypes page with list and forms in frontend/src/pages/admin/ManageTypes.vue
+- [ ] T093 [US5] Create ManageLocations page with list and forms in frontend/src/pages/admin/ManageLocations.vue
+- [ ] T094 [P] [US5] Create TypeForm component in frontend/src/components/admin/TypeForm.vue
+- [ ] T095 [P] [US5] Create LocationForm component in frontend/src/components/admin/LocationForm.vue
+- [ ] T096 [US5] Add admin route guard for role check in frontend/src/router/guards.ts
 
 **Checkpoint**: User Story 5 complete - type/location management works independently
 
@@ -236,23 +237,23 @@
 
 ### Backend Implementation for US6
 
-- [ ] T096 [US6] Create User service with CRUD in backend/src/services/user.service.ts
-- [ ] T097 [US6] Implement GET /api/users (admin) in backend/src/api/routes/users.routes.ts
-- [ ] T098 [US6] Implement POST /api/users (admin) in backend/src/api/routes/users.routes.ts
-- [ ] T099 [US6] Implement GET /api/users/:id (admin) in backend/src/api/routes/users.routes.ts
-- [ ] T100 [US6] Implement PATCH /api/users/:id (admin) in backend/src/api/routes/users.routes.ts
-- [ ] T101 [US6] Create Zod schemas for user management in backend/src/schemas/user.schema.ts
-- [ ] T102 [US6] Implement POST /api/auth/validate with user lookup/creation in backend/src/api/routes/auth.routes.ts
+- [ ] T097 [US6] Create User service with CRUD in backend/src/services/user.service.ts
+- [ ] T098 [US6] Implement GET /api/users (admin) in backend/src/api/routes/users.routes.ts
+- [ ] T099 [US6] Implement POST /api/users (admin) in backend/src/api/routes/users.routes.ts
+- [ ] T100 [US6] Implement GET /api/users/:id (admin) in backend/src/api/routes/users.routes.ts
+- [ ] T101 [US6] Implement PATCH /api/users/:id (admin) in backend/src/api/routes/users.routes.ts
+- [ ] T102 [US6] Create Zod schemas for user management in backend/src/schemas/user.schema.ts
+- [ ] T103 [US6] Implement POST /api/auth/validate with user lookup/creation in backend/src/api/routes/auth.routes.ts
 
 ### Frontend Implementation for US6
 
-- [ ] T103 [US6] Create user store with current user state in frontend/src/stores/user.store.ts
-- [ ] T104 [US6] Create ManageUsers page with list in frontend/src/pages/admin/ManageUsers.vue
-- [ ] T105 [US6] Create UserForm component for add/edit in frontend/src/components/admin/UserForm.vue
-- [ ] T106 [US6] Create UserActivityHistory component in frontend/src/components/admin/UserActivityHistory.vue
-- [ ] T107 [US6] Create AccessDenied page for unauthorized users in frontend/src/pages/AccessDenied.vue
-- [ ] T108 [US6] Create PendingApproval page for new users in frontend/src/pages/PendingApproval.vue
-- [ ] T109 [US6] Implement auth flow on app load in frontend/src/App.vue
+- [ ] T104 [US6] Create user store with current user state in frontend/src/stores/user.store.ts
+- [ ] T105 [US6] Create ManageUsers page with list in frontend/src/pages/admin/ManageUsers.vue
+- [ ] T106 [US6] Create UserForm component for add/edit in frontend/src/components/admin/UserForm.vue
+- [ ] T107 [US6] Create UserActivityHistory component in frontend/src/components/admin/UserActivityHistory.vue
+- [ ] T108 [US6] Create AccessDenied page for unauthorized users in frontend/src/pages/AccessDenied.vue
+- [ ] T109 [US6] Create PendingApproval page for new users in frontend/src/pages/PendingApproval.vue
+- [ ] T110 [US6] Implement auth flow on app load in frontend/src/App.vue
 
 **Checkpoint**: User Story 6 complete - user management works independently
 
@@ -264,13 +265,13 @@
 
 **Purpose**: Implements FR-034 (edit) and FR-032/FR-033 (admin delete)
 
-- [ ] T110 Extend Equipment service with update, softDelete in backend/src/services/equipment.service.ts
-- [ ] T111 Implement PATCH /api/equipment/:id endpoint in backend/src/api/routes/equipment.routes.ts
-- [ ] T112 Implement DELETE /api/equipment/:id (admin only) in backend/src/api/routes/equipment.routes.ts
-- [ ] T113 Create Zod schema for update equipment in backend/src/schemas/equipment.schema.ts
-- [ ] T114 Create EditEquipment page with form in frontend/src/pages/EditEquipment.vue
-- [ ] T115 Add edit/delete actions to EquipmentDetails in frontend/src/pages/EquipmentDetails.vue
-- [ ] T116 Create DeleteConfirmDialog component in frontend/src/components/common/DeleteConfirmDialog.vue
+- [ ] T111 Extend Equipment service with update, softDelete in backend/src/services/equipment.service.ts
+- [ ] T112 Implement PATCH /api/equipment/:id endpoint in backend/src/api/routes/equipment.routes.ts
+- [ ] T113 Implement DELETE /api/equipment/:id (admin only) in backend/src/api/routes/equipment.routes.ts
+- [ ] T114 Create Zod schema for update equipment in backend/src/schemas/equipment.schema.ts
+- [ ] T115 Create EditEquipment page with form in frontend/src/pages/EditEquipment.vue
+- [ ] T116 Add edit/delete actions to EquipmentDetails in frontend/src/pages/EquipmentDetails.vue
+- [ ] T117 Create DeleteConfirmDialog component in frontend/src/components/common/DeleteConfirmDialog.vue
 
 ---
 
@@ -278,15 +279,17 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T117 [P] Add loading skeletons to all list views in frontend/src/components/common/SkeletonLoader.vue
-- [ ] T118 [P] Add error boundaries and retry logic to API calls in frontend/src/services/api.ts
-- [ ] T119 [P] Ensure all touch targets are 44x44px minimum across all components
-- [ ] T120 Add connectivity error handling with user-friendly messages in frontend/src/composables/useApi.ts
-- [ ] T121 Create consistent status badges (Available, Checked-Out, etc.) in frontend/src/components/common/StatusBadge.vue
-- [ ] T122 [P] Add Telegram theme integration (colors, dark mode) in frontend/src/plugins/vuetify.ts
-- [ ] T123 Setup production build script in backend/package.json
-- [ ] T124 Configure backend to serve frontend/dist in production in backend/src/server.ts
-- [ ] T125 Create deployment instructions in README.md
+- [ ] T118 [P] Add loading skeletons to all list views in frontend/src/components/common/SkeletonLoader.vue
+- [ ] T119 [P] Add error boundaries and retry logic to API calls in frontend/src/services/api.ts
+- [ ] T120 [P] Ensure all touch targets are 44x44px minimum across all components
+- [ ] T121 Add connectivity error handling with user-friendly messages in frontend/src/composables/useApi.ts
+- [ ] T122 Create consistent status badges (Checked-Out, Available, Maintenance, Broken) in frontend/src/components/common/StatusBadge.vue
+- [ ] T123 [P] Add Telegram theme integration (colors, dark mode) in frontend/src/plugins/vuetify.ts
+- [ ] T124 [P] Create load testing script to validate SC-005 (1000 items) and SC-006 (50 concurrent users) in backend/tests/load/scale.test.ts
+- [ ] T125 [P] Implement basic analytics to measure SC-007 (first-time user success rate) in frontend/src/composables/useAnalytics.ts
+- [ ] T126 Setup production build script in backend/package.json
+- [ ] T127 Configure backend to serve frontend/dist in production in backend/src/server.ts
+- [ ] T128 Create deployment instructions in README.md
 
 ---
 
@@ -380,13 +383,13 @@ Each phase is a complete deliverable that can be tested and demoed.
 | 2 | Foundational | 19 |
 | 3 | User Story 1 (P1) - Scan/View/Files | 20 |
 | 4 | User Story 2 (P2) - Checkout/Return | 11 |
-| 5 | User Story 3 (P3) - Search/Browse | 11 |
+| 5 | User Story 3 (P3) - Search/Browse | 12 |
 | 6 | User Story 4 (P4) - Add Equipment | 12 |
 | 7 | User Story 5 (P5) - Types/Locations | 13 |
 | 8 | User Story 6 (P6) - User Management | 14 |
 | 9 | Edit/Delete | 7 |
-| 10 | Polish | 9 |
-| **Total** | | **125** |
+| 10 | Polish | 11 |
+| **Total** | | **128** |
 
 ---
 
