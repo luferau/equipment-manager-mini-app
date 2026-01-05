@@ -168,6 +168,9 @@ An administrator adds new users to the system and assigns roles (regular user vs
 - **FR-025**: System MUST restrict administrative functions (user management, type/location management) to Administrator role.
 - **FR-026**: System MUST allow all users to add equipment and attach files.
 - **FR-027**: System MUST allow administrators to add, edit, and deactivate users.
+- **FR-032**: System MUST allow only administrators to delete equipment (soft-delete).
+- **FR-033**: System MUST implement soft-delete for equipment: deleted items are hidden from active views but history is preserved.
+- **FR-034**: System MUST allow any user to edit equipment details (name, description, type, home location); all edits are tracked in the audit trail.
 
 **Search and Browse**
 
@@ -218,3 +221,10 @@ The following reasonable defaults have been assumed based on the feature descrip
 6. **Equipment ID format**: Alphanumeric IDs (e.g., "EQ-001-ABC") are generated automatically; custom ID schemes are not required.
 7. **Notifications**: The system does not send proactive notifications (e.g., "Your equipment is overdue"); users check status manually.
 8. **File attachments**: Users can attach files without checking out equipment; checkout is only required to physically take equipment to another location.
+
+## Clarifications
+
+### Session 2026-01-05
+
+- Q: Who can delete equipment and what happens to deleted records? → A: Only administrators can delete; soft-delete hides from active views but preserves full history for audit purposes.
+- Q: Who can edit existing equipment details? → A: Any user can edit any equipment details (name, description, type, home location); all edits are tracked in the audit trail.
