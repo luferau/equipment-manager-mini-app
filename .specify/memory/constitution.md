@@ -1,50 +1,183 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+  SYNC IMPACT REPORT
+  ==================
+  Version change: 0.0.0 (template) → 1.0.0 (initial ratification)
+
+  Modified principles: N/A (initial creation)
+
+  Added sections:
+    - I. Telegram Mini App Native
+    - II. Vue + Vuetify First
+    - III. QR-Centric Workflow
+    - IV. Equipment Traceability
+    - V. Offline-Resilient Design
+    - VI. Mobile-First UX
+    - VII. Data Integrity & Audit Trail
+    - Technology Stack (new section)
+    - Security & Compliance (new section)
+
+  Removed sections: None (initial creation)
+
+  Templates requiring updates:
+    ✅ .specify/templates/plan-template.md - No update needed (generic)
+    ✅ .specify/templates/spec-template.md - No update needed (generic)
+    ✅ .specify/templates/tasks-template.md - No update needed (generic)
+
+  Follow-up TODOs: None
+-->
+
+# Equipment Manager Mini App Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Telegram Mini App Native
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+All user interactions MUST occur within the Telegram Mini App context. The application:
+- MUST use Telegram WebApp API (version 6.9+) for all platform features
+- MUST leverage Telegram Cloud Storage as the primary key-value persistence layer
+- MUST integrate with Telegram's native QR scanner (no custom camera implementations)
+- MUST utilize Telegram haptic feedback for scan confirmations
+- MUST authenticate users via Telegram's built-in user identity (no separate auth system)
+- MUST NOT require users to leave Telegram to complete any core workflow
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Rationale**: Telegram Mini Apps provide built-in authentication, storage, and device access.
+Reimplementing these features introduces security risks and maintenance burden.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. Vue + Vuetify First
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+The frontend architecture MUST follow Vue.js and Vuetify conventions:
+- MUST use Vue 3 Composition API for all new components
+- MUST use Vuetify 3 components for UI consistency and accessibility
+- MUST structure components as single-file components (.vue)
+- MUST use Pinia for state management when local component state is insufficient
+- MUST follow Vuetify's Material Design guidelines for visual consistency
+- MUST NOT introduce alternative UI frameworks or conflicting styling systems
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: Consistency with the reference implementation (easy-qr-scan-bot) ensures
+proven patterns for Telegram Mini App development and reduces integration risk.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. QR-Centric Workflow
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+QR codes are the primary equipment identification mechanism:
+- Each equipment item MUST have a unique, system-generated identifier
+- Identifiers MUST be encodable as both QR codes and human-readable alphanumeric strings
+- QR scanning MUST use Telegram's native scanner (WebApp.showScanQrPopup)
+- Scanning MUST trigger haptic feedback on success
+- The system MUST support continuous scanning mode for bulk operations
+- QR codes MUST be printable and include human-readable ID below the code
+- Invalid or unknown QR codes MUST display clear error messages with recovery guidance
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**Rationale**: QR codes enable instant equipment lookup without manual data entry.
+Native Telegram scanning is more reliable than JS-based camera solutions.
+
+### IV. Equipment Traceability
+
+Every equipment state change MUST be tracked:
+- Equipment location changes MUST record: who, when, from-location, to-location
+- All equipment actions MUST be immutable once recorded (append-only history)
+- Equipment MUST have defined states: Available, Checked-Out, In-Transit, Maintenance
+- File attachments (documents, photos, videos) MUST be linked to equipment with timestamps
+- Equipment types and categories MUST be hierarchical (type → unit)
+- Room/location data MUST be normalized (room numbers as first-class entities)
+
+**Rationale**: Equipment management requires complete audit trails for accountability.
+Traceability answers "where is it?" and "who had it?" at any point in time.
+
+### V. Offline-Resilient Design
+
+The application MUST handle intermittent connectivity:
+- MUST cache equipment data locally on app startup
+- MUST queue write operations when offline and sync when connectivity resumes
+- MUST clearly indicate sync status to users (synced/pending/failed)
+- MUST use Telegram Cloud Storage sync primitives where available
+- MUST NOT lose user actions due to network failures
+- Conflict resolution MUST favor the most recent action with user notification
+
+**Rationale**: Field users scanning equipment in basements, warehouses, or shielded rooms
+may have poor connectivity. Data loss is unacceptable for inventory accuracy.
+
+### VI. Mobile-First UX
+
+The interface MUST prioritize mobile Telegram clients:
+- Touch targets MUST be minimum 44x44px for accessibility
+- Primary actions (scan, check-out, search) MUST be reachable with one thumb
+- Forms MUST minimize typing; prefer selection, scanning, and defaults
+- Loading states MUST show skeleton screens, not blank pages
+- Error messages MUST be actionable ("Scan failed. Tap to retry.")
+- The app MUST function on Telegram API version 6.9+ (Android and iOS)
+
+**Rationale**: Equipment scanning happens on mobile devices in the field.
+Desktop support is secondary to mobile usability.
+
+### VII. Data Integrity & Audit Trail
+
+All data operations MUST maintain integrity and auditability:
+- Equipment IDs MUST be immutable once generated
+- Deletion MUST be soft-delete with retention (never hard-delete equipment records)
+- All user actions MUST include: user_id, timestamp, action_type, before/after state
+- File attachments MUST be stored with checksums for integrity verification
+- Data exports MUST include complete history, not just current state
+- The system MUST support administrative queries for compliance audits
+
+**Rationale**: Equipment tracking systems are often subject to audits.
+Complete, tamper-evident history is essential for compliance and dispute resolution.
+
+## Technology Stack
+
+The following technology choices are non-negotiable for this project:
+
+| Layer | Technology | Rationale |
+|-------|------------|-----------|
+| Frontend Framework | Vue 3 | Reference project compatibility, reactive UI |
+| UI Components | Vuetify 3 | Material Design, accessibility, mobile-first |
+| State Management | Pinia | Vue 3 recommended, devtools support |
+| Build Tool | Vite | Fast HMR, modern ES modules |
+| Platform API | Telegram WebApp SDK | Native Mini App integration |
+| Primary Storage | Telegram Cloud Storage | Cross-device sync, no backend required |
+| Secondary Storage | IndexedDB | Offline caching, large file metadata |
+| Code Quality | ESLint + Prettier | Consistent code style |
+| Deployment | GitHub Pages + Actions | Automated, static hosting |
+
+Backend services (if required for file storage or advanced queries) MUST be:
+- Stateless and horizontally scalable
+- Documented with OpenAPI specification
+- Versioned with semantic versioning
+
+## Security & Compliance
+
+Security requirements for equipment tracking systems:
+
+- User identity MUST come exclusively from Telegram (initData validation)
+- All API requests MUST validate Telegram initData signature server-side
+- File uploads MUST validate MIME types and scan for malware before storage
+- PII (personally identifiable information) MUST be minimized; use Telegram user IDs
+- Equipment location data MUST NOT expose precise GPS coordinates (room numbers only)
+- Admin actions MUST require elevated Telegram user permissions (bot admin list)
+- All data MUST be exportable for GDPR compliance requests
+- Audit logs MUST be retained for minimum 2 years
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This Constitution is the authoritative source for architectural and development decisions.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Amendment Process**:
+1. Propose changes via documented rationale in a pull request
+2. Changes require approval from project maintainer(s)
+3. Breaking changes (principle removal/redefinition) require migration plan
+4. Version increment follows semantic versioning (see below)
+
+**Versioning Policy**:
+- MAJOR: Backward-incompatible principle changes or removals
+- MINOR: New principles, sections, or materially expanded guidance
+- PATCH: Clarifications, wording improvements, typo fixes
+
+**Compliance Review**:
+- All pull requests MUST verify alignment with these principles
+- Code reviews MUST check Constitution compliance before approval
+- Complexity beyond these principles MUST be justified in PR description
+
+**Runtime Guidance**:
+For day-to-day development patterns, refer to project documentation and
+the Telegram Mini Apps official documentation at https://core.telegram.org/bots/webapps
+
+**Version**: 1.0.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-01-05
