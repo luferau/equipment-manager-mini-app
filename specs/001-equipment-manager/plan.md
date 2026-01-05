@@ -86,7 +86,42 @@ frontend/
     └── unit/             # Component tests
 ```
 
-**Structure Decision**: Web application structure (Option 2) with `backend/` and `frontend/` directories. The backend serves both the API and the built frontend as static files. Single deployment unit to Heroku or local server.
+**Structure Decision**: Web application structure with `backend/` and `frontend/` directories. The backend serves both the API and the built frontend as static files. Single deployment unit to Heroku or local server.
+
+## Deployment Architecture
+
+**Option A: Backend Serves Frontend (Selected)**
+
+```text
+┌─────────────────────────────────────────────┐
+│  Local Machine / Heroku / VPS               │
+│                                             │
+│  Node.js Server (Express)                   │
+│  ├── /api/*           → API endpoints       │
+│  ├── /*               → Serve Vue frontend  │
+│  ├── SQLite database  → ./data/dev.db       │
+│  └── File storage     → ./uploads/          │
+│                                             │
+│  Exposed via:                               │
+│  - Development: ngrok HTTPS tunnel          │
+│  - Production: Domain with HTTPS            │
+└─────────────────────────────────────────────┘
+         ▲
+         │ HTTPS (Telegram requires secure connection)
+         │
+    Telegram Mini App
+    (Mobile client → WebApp API)
+```
+
+**Why Not GitHub Pages?**
+
+GitHub Pages only serves static files and cannot:
+- Run Node.js server for API endpoints
+- Execute server-side Telegram initData validation
+- Access SQLite database
+- Handle multi-user shared state
+
+Unlike the [easy-qr-scan-bot](https://github.com/MBoretto/easy-qr-scan-bot) reference project (which uses Telegram Cloud Storage for per-user data), this app requires a backend database for shared equipment tracking across all users.
 
 ## Complexity Tracking
 

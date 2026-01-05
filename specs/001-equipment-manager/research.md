@@ -260,8 +260,65 @@ PATCH  /api/users/:id              - Update user role (admin)
 | Telegram API rate limits | Cache aggressively, batch operations |
 | initData expiration | Re-validate on session start, handle gracefully |
 
+## Deployment Strategy
+
+### Selected: Backend Serves Frontend (Unified Deployment)
+
+**Architecture**:
+```javascript
+// backend/src/server.js
+const express = require('express');
+const path = require('path');
+const app = express();
+
+// API routes
+app.use('/api', apiRouter);
+
+// Serve static frontend build
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+
+// SPA fallback - all non-API routes serve index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+});
+```
+
+**Build Process**:
+```bash
+# Build frontend
+cd frontend && npm run build  # Output: frontend/dist/
+
+# Start unified server
+cd backend && npm start        # Serves both API and frontend
+```
+
+**Why This Approach**:
+- ✅ Single deployment target (one server, one port)
+- ✅ No CORS configuration needed
+- ✅ Simplified Telegram initData validation (same origin)
+- ✅ Works on local machine, Heroku, or any Node.js host
+- ✅ Easy backup (copy entire directory with SQLite + uploads)
+
+**Rejected Alternative: Separate Frontend (GitHub Pages)**:
+- ❌ GitHub Pages cannot run Node.js backend
+- ❌ Requires CORS setup for API calls
+- ❌ Splits deployment into two services
+- ❌ easy-qr-scan-bot uses this because it has **no backend** (uses Telegram Cloud Storage)
+
+### Development vs. Production
+
+| Environment | Frontend | Backend | Database |
+|-------------|----------|---------|----------|
+| **Development** | Vite dev server (localhost:5173) | Express (localhost:3000) | SQLite (./dev.db) |
+| **Production** | Express serves `dist/` | Express (port 3000) | SQLite (./data/prod.db) |
+
+**HTTPS Requirement**: Telegram Mini Apps require HTTPS. Use:
+- Development: ngrok tunnel (`ngrok http 3000`)
+- Production: Domain with SSL or Heroku (auto-HTTPS)
+
 ## Next Steps
 
-1. **Phase 1**: Create detailed data model (Prisma schema)
-2. **Phase 1**: Define API contracts (OpenAPI spec from Zod schemas)
-3. **Phase 1**: Write quickstart.md for development setup
+1. **Phase 1**: ✅ Created detailed data model (Prisma schema)
+2. **Phase 1**: ✅ Defined API contracts (OpenAPI spec)
+3. **Phase 1**: ✅ Written quickstart.md for development setup
+4. **Phase 2**: Generate implementation tasks with `/speckit.tasks`

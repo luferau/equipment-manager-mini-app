@@ -228,19 +228,66 @@ For local development, QR scanning requires Telegram context. Options:
 
 ## Deployment
 
-### Local/On-Premise
+### Architecture: Backend Serves Frontend
+
+This project uses a **unified deployment** model where the Node.js backend serves both:
+- API endpoints at `/api/*`
+- Vue frontend (built static files) at `/*`
+
+**Why not GitHub Pages?** Unlike the [easy-qr-scan-bot](https://github.com/MBoretto/easy-qr-scan-bot) reference (which uses Telegram Cloud Storage and has no backend), this app requires a Node.js server for:
+- SQLite database access (shared equipment data)
+- Server-side Telegram initData validation
+- File upload handling
+
+### Local/On-Premise Deployment
 
 ```bash
-# Build frontend
+# 1. Build frontend
 cd frontend
-npm run build
+npm run build  # Creates frontend/dist/
 
-# Start production server
-cd backend
-NODE_ENV=production npm start
+# 2. Backend will serve this build
+cd ../backend
+
+# 3. Configure production environment
+cat > .env << EOF
+NODE_ENV=production
+PORT=3000
+DATABASE_URL="file:./data/prod.db"
+BOT_TOKEN=your_bot_token_here
+WEBAPP_URL=https://your-domain.com
+MAX_FILE_SIZE=10485760
+UPLOAD_DIR=./uploads
+EOF
+
+# 4. Initialize production database
+npx prisma migrate deploy
+npx prisma db seed  # Optional: seed initial data
+
+# 5. Start server (serves both API and frontend)
+npm start
 ```
 
-The backend serves both API and built frontend from `/dist`.
+**HTTPS Requirement**: Use ngrok for development or configure SSL certificate for production:
+
+```bash
+# Development with ngrok
+ngrok http 3000
+
+# Or production with custom domain
+# Configure reverse proxy (nginx/Apache) with SSL certificate
+```
+
+The backend serves both API and built frontend. The Express server configuration:
+
+```javascript
+// backend/src/server.js structure
+app.use('/api', apiRouter);                     // API endpoints
+app.use(express.static('../frontend/dist'));    // Static frontend
+app.get('*', (req, res) => {                    // SPA fallback
+  res.sendFile('frontend/dist/index.html');
+});
+```
 
 ### Heroku
 
