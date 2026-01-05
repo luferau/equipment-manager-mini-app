@@ -1,22 +1,21 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version change: 0.0.0 (template) → 1.0.0 (initial ratification)
+  Version change: 1.0.0 → 1.1.0 (architecture update)
 
-  Modified principles: N/A (initial creation)
+  Modified principles:
+    - I. Telegram Mini App Native: Removed Cloud Storage as primary persistence
+    - V. Offline-Resilient Design: Updated to use IndexedDB for local cache
 
   Added sections:
-    - I. Telegram Mini App Native
-    - II. Vue + Vuetify First
-    - III. QR-Centric Workflow
-    - IV. Equipment Traceability
-    - V. Offline-Resilient Design
-    - VI. Mobile-First UX
-    - VII. Data Integrity & Audit Trail
-    - Technology Stack (new section)
-    - Security & Compliance (new section)
+    - VIII. Node.js Backend & SQLite (new principle)
 
-  Removed sections: None (initial creation)
+  Removed sections: None
+
+  Technology Stack changes:
+    - Added: Node.js runtime, Express.js, SQLite, node-telegram-bot-api, Prisma ORM
+    - Changed: Primary Storage from "Telegram Cloud Storage" to "SQLite"
+    - Changed: Deployment from "GitHub Pages" to "Local/Heroku"
 
   Templates requiring updates:
     ✅ .specify/templates/plan-template.md - No update needed (generic)
@@ -34,14 +33,14 @@
 
 All user interactions MUST occur within the Telegram Mini App context. The application:
 - MUST use Telegram WebApp API (version 6.9+) for all platform features
-- MUST leverage Telegram Cloud Storage as the primary key-value persistence layer
 - MUST integrate with Telegram's native QR scanner (no custom camera implementations)
 - MUST utilize Telegram haptic feedback for scan confirmations
 - MUST authenticate users via Telegram's built-in user identity (no separate auth system)
 - MUST NOT require users to leave Telegram to complete any core workflow
+- MAY use Telegram Cloud Storage for user preferences only (not shared data)
 
-**Rationale**: Telegram Mini Apps provide built-in authentication, storage, and device access.
-Reimplementing these features introduces security risks and maintenance burden.
+**Rationale**: Telegram Mini Apps provide built-in authentication and device access.
+Shared data (equipment, history, files) requires a backend database accessible to all users.
 
 ### II. Vue + Vuetify First
 
@@ -86,10 +85,9 @@ Traceability answers "where is it?" and "who had it?" at any point in time.
 ### V. Offline-Resilient Design
 
 The application MUST handle intermittent connectivity:
-- MUST cache equipment data locally on app startup
+- MUST cache equipment data locally in IndexedDB on app startup
 - MUST queue write operations when offline and sync when connectivity resumes
 - MUST clearly indicate sync status to users (synced/pending/failed)
-- MUST use Telegram Cloud Storage sync primitives where available
 - MUST NOT lose user actions due to network failures
 - Conflict resolution MUST favor the most recent action with user notification
 
@@ -122,26 +120,57 @@ All data operations MUST maintain integrity and auditability:
 **Rationale**: Equipment tracking systems are often subject to audits.
 Complete, tamper-evident history is essential for compliance and dispute resolution.
 
+### VIII. Node.js Backend & SQLite
+
+All shared data MUST be stored in a centralized backend:
+- MUST use Node.js as the server runtime
+- MUST use SQLite as the database (single-file, zero-configuration)
+- MUST use Prisma ORM for type-safe database access and migrations
+- MUST use Express.js for REST API endpoints
+- MUST use node-telegram-bot-api for Telegram Bot API integration
+- Files MUST be stored on the local filesystem with metadata in SQLite
+- The backend MUST be deployable to local machine or Heroku
+- All API endpoints MUST validate Telegram initData before processing
+
+**Rationale**: SQLite is the simplest database solution - no separate server process,
+single file for all data, easy backup (copy the file), and sufficient for typical
+equipment inventory scale (thousands of items, dozens of users).
+
 ## Technology Stack
 
 The following technology choices are non-negotiable for this project:
 
+### Frontend (Mini App)
+
 | Layer | Technology | Rationale |
 |-------|------------|-----------|
-| Frontend Framework | Vue 3 | Reference project compatibility, reactive UI |
+| Framework | Vue 3 | Reference project compatibility, reactive UI |
 | UI Components | Vuetify 3 | Material Design, accessibility, mobile-first |
 | State Management | Pinia | Vue 3 recommended, devtools support |
 | Build Tool | Vite | Fast HMR, modern ES modules |
 | Platform API | Telegram WebApp SDK | Native Mini App integration |
-| Primary Storage | Telegram Cloud Storage | Cross-device sync, no backend required |
-| Secondary Storage | IndexedDB | Offline caching, large file metadata |
+| Local Cache | IndexedDB | Offline data caching |
 | Code Quality | ESLint + Prettier | Consistent code style |
-| Deployment | GitHub Pages + Actions | Automated, static hosting |
 
-Backend services (if required for file storage or advanced queries) MUST be:
-- Stateless and horizontally scalable
-- Documented with OpenAPI specification
-- Versioned with semantic versioning
+### Backend (Bot + API)
+
+| Layer | Technology | Rationale |
+|-------|------------|-----------|
+| Runtime | Node.js 20 LTS | Stable, long-term support |
+| Framework | Express.js | Minimal, well-documented |
+| Database | SQLite 3 | Zero-config, single-file, portable |
+| ORM | Prisma | Type-safe queries, easy migrations |
+| Bot Library | node-telegram-bot-api | Mature, well-maintained |
+| File Storage | Local filesystem | Simple, no external dependencies |
+| Validation | Zod | Runtime type validation |
+
+### Deployment
+
+| Environment | Platform | Notes |
+|-------------|----------|-------|
+| Development | Local machine | SQLite file in project directory |
+| Production | Heroku or local server | Heroku free tier or any Node.js host |
+| Frontend | Served by backend | Single deployment unit |
 
 ## Security & Compliance
 
@@ -149,12 +178,14 @@ Security requirements for equipment tracking systems:
 
 - User identity MUST come exclusively from Telegram (initData validation)
 - All API requests MUST validate Telegram initData signature server-side
-- File uploads MUST validate MIME types and scan for malware before storage
+- File uploads MUST validate MIME types before storage
+- File uploads MUST be size-limited (configurable, default 10MB)
 - PII (personally identifiable information) MUST be minimized; use Telegram user IDs
 - Equipment location data MUST NOT expose precise GPS coordinates (room numbers only)
 - Admin actions MUST require elevated Telegram user permissions (bot admin list)
 - All data MUST be exportable for GDPR compliance requests
 - Audit logs MUST be retained for minimum 2 years
+- SQLite database file MUST be backed up regularly (simple file copy)
 
 ## Governance
 
@@ -180,4 +211,4 @@ This Constitution is the authoritative source for architectural and development 
 For day-to-day development patterns, refer to project documentation and
 the Telegram Mini Apps official documentation at https://core.telegram.org/bots/webapps
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-01-05
+**Version**: 1.1.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-01-05
