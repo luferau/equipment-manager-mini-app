@@ -74,7 +74,7 @@ Native Telegram scanning is more reliable than JS-based camera solutions.
 Every equipment state change MUST be tracked:
 - Equipment location changes MUST record: who, when, from-location, to-location
 - All equipment actions MUST be immutable once recorded (append-only history)
-- Equipment MUST have defined states: Available, Checked-Out, In-Transit, Maintenance
+- Equipment MUST have defined states: Busy, Available, Maintenance, Broken
 - File attachments (documents, photos, videos) MUST be linked to equipment with timestamps
 - Equipment types and categories MUST be hierarchical (type → unit)
 - Room/location data MUST be normalized (room numbers as first-class entities)
@@ -82,19 +82,7 @@ Every equipment state change MUST be tracked:
 **Rationale**: Equipment management requires complete audit trails for accountability.
 Traceability answers "where is it?" and "who had it?" at any point in time.
 
-### V. Offline-Resilient Design
-
-The application MUST handle intermittent connectivity:
-- MUST cache equipment data locally in IndexedDB on app startup
-- MUST queue write operations when offline and sync when connectivity resumes
-- MUST clearly indicate sync status to users (synced/pending/failed)
-- MUST NOT lose user actions due to network failures
-- Conflict resolution MUST favor the most recent action with user notification
-
-**Rationale**: Field users scanning equipment in basements, warehouses, or shielded rooms
-may have poor connectivity. Data loss is unacceptable for inventory accuracy.
-
-### VI. Mobile-First UX
+### V. Mobile-First UX
 
 The interface MUST prioritize mobile Telegram clients:
 - Touch targets MUST be minimum 44x44px for accessibility
@@ -107,7 +95,7 @@ The interface MUST prioritize mobile Telegram clients:
 **Rationale**: Equipment scanning happens on mobile devices in the field.
 Desktop support is secondary to mobile usability.
 
-### VII. Data Integrity & Audit Trail
+### VI. Data Integrity & Audit Trail
 
 All data operations MUST maintain integrity and auditability:
 - Equipment IDs MUST be immutable once generated
@@ -120,7 +108,7 @@ All data operations MUST maintain integrity and auditability:
 **Rationale**: Equipment tracking systems are often subject to audits.
 Complete, tamper-evident history is essential for compliance and dispute resolution.
 
-### VIII. Node.js Backend & SQLite
+### VII. Node.js Backend & SQLite
 
 All shared data MUST be stored in a centralized backend:
 - MUST use Node.js as the server runtime
@@ -149,7 +137,6 @@ The following technology choices are non-negotiable for this project:
 | State Management | Pinia | Vue 3 recommended, devtools support |
 | Build Tool | Vite | Fast HMR, modern ES modules |
 | Platform API | Telegram WebApp SDK | Native Mini App integration |
-| Local Cache | IndexedDB | Offline data caching |
 | Code Quality | ESLint + Prettier | Consistent code style |
 
 ### Backend (Bot + API)
@@ -183,9 +170,7 @@ Security requirements for equipment tracking systems:
 - PII (personally identifiable information) MUST be minimized; use Telegram user IDs
 - Equipment location data MUST NOT expose precise GPS coordinates (room numbers only)
 - Admin actions MUST require elevated Telegram user permissions (bot admin list)
-- All data MUST be exportable for GDPR compliance requests
 - Audit logs MUST be retained for minimum 2 years
-- SQLite database file MUST be backed up regularly (simple file copy)
 
 ## Governance
 
